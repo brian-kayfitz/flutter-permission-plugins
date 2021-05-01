@@ -8,25 +8,25 @@ import 'package:meta/meta.dart';
 class LocationPermissions {
   factory LocationPermissions() {
     if (_instance == null) {
-      const MethodChannel methodChannel =
+      const methodChannel =
           MethodChannel('com.baseflow.flutter/location_permissions');
-      final EventChannel eventChannel = Platform.isAndroid
+      final EventChannel? eventChannel = Platform.isAndroid
           ? const EventChannel(
               'com.baseflow.flutter/location_permissions_events')
           : null;
 
       _instance = LocationPermissions.private(methodChannel, eventChannel);
     }
-    return _instance;
+    return _instance!;
   }
 
   @visibleForTesting
   LocationPermissions.private(this._methodChannel, this._eventChannel);
 
-  static LocationPermissions _instance;
+  static LocationPermissions? _instance;
 
   final MethodChannel _methodChannel;
-  final EventChannel _eventChannel;
+  final EventChannel? _eventChannel;
 
   /// Check current permission status.
   ///
@@ -34,8 +34,8 @@ class LocationPermissions {
   Future<PermissionStatus> checkPermissionStatus(
       {LocationPermissionLevel level =
           LocationPermissionLevel.location}) async {
-    final int status =
-        await _methodChannel.invokeMethod('checkPermissionStatus', level.index);
+    final status =
+        await (_methodChannel.invokeMethod('checkPermissionStatus', level.index) as FutureOr<int>);
 
     return PermissionStatus.values[status];
   }
@@ -46,8 +46,8 @@ class LocationPermissions {
   Future<ServiceStatus> checkServiceStatus(
       {LocationPermissionLevel level =
           LocationPermissionLevel.location}) async {
-    final int status =
-        await _methodChannel.invokeMethod('checkServiceStatus', level.index);
+    final status =
+        await (_methodChannel.invokeMethod('checkServiceStatus', level.index) as FutureOr<int>);
 
     return ServiceStatus.values[status];
   }
@@ -56,9 +56,8 @@ class LocationPermissions {
   ///
   /// Returns [true] if the app settings page could be opened, otherwise [false] is returned.
   Future<bool> openAppSettings() async {
-    final bool hasOpened = await _methodChannel.invokeMethod('openAppSettings');
-
-    return hasOpened;
+    final hasOpened = await _methodChannel.invokeMethod<bool>('openAppSettings');
+    return hasOpened ?? false;
   }
 
   /// Request the user for access to the location services.
@@ -67,8 +66,8 @@ class LocationPermissions {
   Future<PermissionStatus> requestPermissions(
       {LocationPermissionLevel permissionLevel =
           LocationPermissionLevel.location}) async {
-    final int status = await _methodChannel.invokeMethod(
-        'requestPermission', permissionLevel.index);
+    final int status = await (_methodChannel.invokeMethod(
+        'requestPermission', permissionLevel.index) as FutureOr<int>);
 
     return PermissionStatus.values[status];
   }
@@ -77,14 +76,14 @@ class LocationPermissions {
   ///
   /// This method is only implemented on Android, calling this on iOS always
   /// returns [false].
-  Future<bool> shouldShowRequestPermissionRationale(
+  Future<bool?> shouldShowRequestPermissionRationale(
       {LocationPermissionLevel permissionLevel =
           LocationPermissionLevel.location}) async {
     if (!Platform.isAndroid) {
       return false;
     }
 
-    final bool shouldShowRationale = await _methodChannel.invokeMethod(
+    final bool? shouldShowRationale = await _methodChannel.invokeMethod(
         'shouldShowRequestPermissionRationale', permissionLevel.index);
 
     return shouldShowRationale;
@@ -97,7 +96,7 @@ class LocationPermissions {
     assert(Platform.isAndroid,
         'Listening to service state changes is only supported on Android.');
 
-    return _eventChannel.receiveBroadcastStream().map((dynamic status) =>
+    return _eventChannel!.receiveBroadcastStream().map((dynamic status) =>
         status ? ServiceStatus.enabled : ServiceStatus.disabled);
   }
 }
