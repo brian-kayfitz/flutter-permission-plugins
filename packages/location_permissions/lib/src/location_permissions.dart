@@ -6,22 +6,23 @@ import 'package:location_permissions/src/permission_enums.dart';
 import 'package:meta/meta.dart';
 
 class LocationPermissions {
+  // ignore: public_member_api_docs
   factory LocationPermissions() {
     if (_instance == null) {
       const methodChannel =
           MethodChannel('com.baseflow.flutter/location_permissions');
-      final EventChannel? eventChannel = Platform.isAndroid
+      final eventChannel = Platform.isAndroid
           ? const EventChannel(
               'com.baseflow.flutter/location_permissions_events')
           : null;
 
-      _instance = LocationPermissions.private(methodChannel, eventChannel);
+      _instance = LocationPermissions._private(methodChannel, eventChannel);
     }
     return _instance!;
   }
 
   @visibleForTesting
-  LocationPermissions.private(this._methodChannel, this._eventChannel);
+  LocationPermissions._private(this._methodChannel, this._eventChannel);
 
   static LocationPermissions? _instance;
 
@@ -35,7 +36,7 @@ class LocationPermissions {
       {LocationPermissionLevel level =
           LocationPermissionLevel.location}) async {
     final status =
-        await (_methodChannel.invokeMethod('checkPermissionStatus', level.index) as FutureOr<int>);
+        await _methodChannel.invokeMethod('checkPermissionStatus', level.index);
 
     return PermissionStatus.values[status];
   }
@@ -47,7 +48,7 @@ class LocationPermissions {
       {LocationPermissionLevel level =
           LocationPermissionLevel.location}) async {
     final status =
-        await (_methodChannel.invokeMethod('checkServiceStatus', level.index) as FutureOr<int>);
+        await _methodChannel.invokeMethod('checkServiceStatus', level.index);
 
     return ServiceStatus.values[status];
   }
@@ -67,7 +68,7 @@ class LocationPermissions {
       {LocationPermissionLevel permissionLevel =
           LocationPermissionLevel.location}) async {
     final int status = await (_methodChannel.invokeMethod(
-        'requestPermission', permissionLevel.index) as FutureOr<int>);
+        'requestPermission', permissionLevel.index));
 
     return PermissionStatus.values[status];
   }
